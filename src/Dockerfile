@@ -6,7 +6,7 @@ ENV NODE_PORT	9633
 
 ENV GUAPCOIN_VERSION					2.3.2
 ENV GUAPCOIN_DOWNLOAD_URL				https://github.com/guapcrypto/Guap-v$GUAPCOIN_VERSION-MN/releases/download/v$GUAPCOIN_VERSION/Guapcoin-$GUAPCOIN_VERSION-Ubuntu20.04-daemon.tar.gz
-ENV GUAPCOIN_BOOTSTRAP_DOWNLOAD_URL		https://github.com/guapcrypto/Guap-v$GUAPCOIN_VERSION-MN/releases/download/v$GUAPCOIN_VERSION/bootstrap.zip
+ENV GUAPCOIN_BOOTSTRAP_DOWNLOAD_URL			https://github.com/guapcrypto/Guap-v$GUAPCOIN_VERSION-MN/releases/download/v$GUAPCOIN_VERSION/bootstrap.zip
 
 # basic build-time metadata as defined at http://label-schema.org
 LABEL org.label-schema.build-date=$BUILD_DATE \
@@ -44,14 +44,24 @@ RUN set -eux; \
 	guapcoind -version | grep "Guapcoin Daemon version v${GUAPCOIN_VERSION}.0"; \
 	guapcoin-cli -version | grep "Guapcoin RPC client version v${GUAPCOIN_VERSION}.0"
 		
+# set the current working directory inside the container
+WORKDIR /usr/local/bin/
+	
+# copy files
+COPY entrypoint.sh .
+COPY start-unprivileged.sh .
+
+# set permissions
+RUN set -eux; \
+	chmod a+x \
+		entrypoint.sh \
+		start-unprivileged.sh;
+
+# set the current working directory inside the container
 WORKDIR /home/guapcoin
 
 # use our guapcoin user
 USER guapcoin
-	
-# copy files
-COPY entrypoint.sh /usr/local/bin/
-COPY start-unprivileged.sh /usr/local/bin/
 
 # entrypoint
 ENTRYPOINT ["entrypoint.sh"]
